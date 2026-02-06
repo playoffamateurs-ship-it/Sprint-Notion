@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sprint Timeline Widget</title>
+  <style>
+    :root{
+      --bg: #ffffff;
+      --card: #ffffff;
+      --border: rgba(15, 23, 42, .12);
+      --muted: rgba(15, 23, 42, .65);
+      --text: #0f172a;
+
+      --accent: #2563eb;   /* bleu tech */
+      --accent2:#22c55e;   /* vert progrès */
+
+      --shadow: 0 10px 30px rgba(2, 6, 23, .08);
+      --radius: 16px;
+    }
+
+    *{ box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body{
+      margin: 0;
+      padding: 12px;
+      background: transparent;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wrap{ 
+      width: 100%; 
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    .card{
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* grille tech discrète */
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background-image:
+        linear-gradient(to right, rgba(37,99,235,.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(37,99,235,.06) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle at 25% 0%, rgba(0,0,0,.45), transparent 55%);
+      pointer-events:none;
+    }
+    .card > *{ position: relative; z-index: 1; }
+
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap: 16px;
+      flex-wrap:wrap;
+      margin-bottom: 20px;
+    }
+
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap: 8px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .title{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      flex-wrap:wrap;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: .2px;
+    }
+
+    .pill{
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: rgba(37, 99, 235, .06);
+      white-space: nowrap;
+    }
+
+    .meta{
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .right{
+      text-align:right;
+      min-width: 200px;
+    }
+
+    .big{
+      font-weight: 900;
+      font-size: 32px;
+      line-height: 1;
+      color: var(--accent);
+    }
+
+    .small{
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Timeline */
+    .timelineWrap{
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      position: relative;
+    }
+
+    .track{
+      position: relative;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+
+    .segment{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(2, 6, 23, .02);
+      position: relative;
+      overflow:hidden;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .segment .segTitle{
+      font-weight: 900;
+      font-size: 15px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag{
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing:.3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: #fff;
+      white-space: nowrap;
+    }
+
+    .dates{
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* Current sprint highlight */
+    .current{
+      background: rgba(37, 99, 235, .08);
+      border-color: rgba(37, 99, 235, .25);
+      border-width: 2px;
+    }
+    .current .segTitle{ color: var(--accent); }
+
+    /* Progress bar inside current segment */
+    .miniBar{
+      margin-top: auto;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, .10);
+      overflow:hidden;
+    }
+    .miniFill{
+      height:100%;
+      width:0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 1200ms cubic-bezier(.2,.9,.2,1);
+      position:relative;
+    }
+    .miniFill::after{
+      content:"";
+      position:absolute;
+      top:0; left:-40%;
+      width: 40%;
+      height:100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+      transform: skewX(-18deg);
+      animation: sheen 2.8s infinite;
+      opacity: .7;
+    }
+    @keyframes sheen{
+      0%   { left:-45%; }
+      60%  { left:110%; }
+      100% { left:110%; }
+    }
+
+    /* Today marker */
+    .todayMarker{
+      position:absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events:none;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .dot{
+      width: 12px; 
+      height: 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(37,99,235,.15);
+      border: 2px solid white;
+    }
+
+    .label{
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--accent);
+      background: #fff;
+      border: 1px solid rgba(37,99,235,.3);
+      border-radius: 999px;
+      padding: 5px 10px;
+      white-space:nowrap;
+      box-shadow: 0 2px 8px rgba(37,99,235,.15);
+    }
+
+    .line{
+      width: 2px;
+      height: 16px;
+      background: rgba(37,99,235,.4);
+      border-radius: 999px;
+    }
+
+    /* Footer hint */
+    .hint{
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Responsive pour Notion */
+    @media (max-width: 800px){
+      .track{ 
+        grid-template-columns: 1fr; 
+        gap: 10px;
+      }
+      .todayMarker{ display:none; }
+      .right{ 
+        text-align:left; 
+        min-width: auto;
+      }
+      .header{
+        flex-direction: column;
+        gap: 12px;
+      }
+      .big{ font-size: 28px; }
+      .title{ font-size: 20px; }
+    }
+
+    @media (max-width: 480px){
+      body{ padding: 8px; }
+      .card{ padding: 16px; }
+      .big{ font-size: 24px; }
+      .title{ font-size: 18px; }
+      .segment{ padding: 12px; min-height: 80px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card" role="group" aria-label="Sprint timeline widget">
+      <div class="header">
+        <div class="left">
+          <div class="title">
+            <span id="currentTitle">Sprint —</span>
+            <span class="pill" id="pill">—</span>
+          </div>
+          <div class="meta" id="currentRange">—</div>
+        </div>
+
+        <div class="right">
+          <div class="big" id="pct">—%</div>
+          <div class="small" id="kpi">—</div>
+        </div>
+      </div>
+
+      <div class="timelineWrap">
+        <div class="todayMarker" id="marker" aria-hidden="true">
+          <div class="label" id="todayLabel">Today</div>
+          <div class="dot"></div>
+          <div class="line"></div>
+        </div>
+
+        <div class="track" id="track">
+          <div class="segment" id="prevSeg">
+            <div class="segTitle">
+              <span id="prevName">Sprint —</span> 
+              <span class="tag">précédent</span>
+            </div>
+            <div class="dates" id="prevDates">—</div>
+          </div>
+
+          <div class="segment current" id="curSeg">
+            <div class="segTitle">
+              <span id="curName">Sprint —</span> 
+              <span class="tag">actuel</span>
+            </div>
+            <div class="dates" id="curDates">—</div>
+            <div class="miniBar">
+              <div class="miniFill" id="miniFill"></div>
+            </div>
+          </div>
+
+          <div class="segment" id="nextSeg">
+            <div class="segTitle">
+              <span id="nextName">Sprint —</span> 
+              <span class="tag">suivant</span>
+            </div>
+            <div class="dates" id="nextDates">—</div>
+          </div>
+        </div>
+
+        <div class="hint" id="hint">Sprint 1 démarre le 05/01/2026 • Durée : 14 jours • Mise à jour automatique</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ====== CONFIGURATION ======
+  const SPRINT1_START = "2026-01-05"; // Format: YYYY-MM-DD
+  const SPRINT_LENGTH_DAYS = 14;
+
+  // ====== Helpers ======
+  const pad = (n) => String(n).padStart(2, "0");
+  const formatFR = (d) => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const addDays = (d, days) => { 
+    const x = new Date(d); 
+    x.setDate(x.getDate()+days); 
+    return x; 
+  };
+  const daysBetween = (a,b) => Math.floor((b-a)/(1000*60*60*24));
+  const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
+
+  function sprintBounds(sprint1Start, sprintIndex){
+    const start = addDays(sprint1Start, (sprintIndex-1)*SPRINT_LENGTH_DAYS);
+    const end = addDays(start, SPRINT_LENGTH_DAYS-1);
+    return { start, end };
+  }
+
+  function compute(){
+    const today = startOfDay(new Date());
+    const sprint1 = startOfDay(new Date(SPRINT1_START + "T00:00:00"));
+
+    const deltaDays = daysBetween(sprint1, today);
+    let sprintIndex = Math.floor(deltaDays / SPRINT_LENGTH_DAYS) + 1;
+    if (deltaDays < 0) sprintIndex = 1;
+
+    const cur = sprintBounds(sprint1, sprintIndex);
+    const prev = sprintBounds(sprint1, Math.max(1, sprintIndex-1));
+    const next = sprintBounds(sprint1, sprintIndex+1);
+
+    const dayInSprint = clamp(daysBetween(cur.start, today)+1, 1, SPRINT_LENGTH_DAYS);
+    const progress = clamp((dayInSprint-1)/(SPRINT_LENGTH_DAYS-1), 0, 1);
+    const pct = Math.round(progress*100);
+
+    const isLastDay = dayInSprint === SPRINT_LENGTH_DAYS;
+    const pill = isLastDay ? "Dernier jour" : `J+${dayInSprint-1} / ${SPRINT_LENGTH_DAYS}`;
+
+    // Header
+    document.getElementById("currentTitle").textContent = `Sprint ${sprintIndex}`;
+    document.getElementById("pill").textContent = pill;
+    document.getElementById("currentRange").textContent =
+      `Du ${formatFR(cur.start)} au ${formatFR(cur.end)} (14 jours)`;
+
+    document.getElementById("pct").textContent = `${pct}%`;
+    document.getElementById("kpi").textContent = isLastDay
+      ? "Fin de sprint aujourd'hui"
+      : `Aujourd'hui : ${formatFR(today)}`;
+
+    // Segments labels
+    document.getElementById("prevName").textContent = `Sprint ${Math.max(1, sprintIndex-1)}`;
+    document.getElementById("curName").textContent = `Sprint ${sprintIndex}`;
+    document.getElementById("nextName").textContent = `Sprint ${sprintIndex+1}`;
+
+    document.getElementById("prevDates").textContent = `Du ${formatFR(prev.start)} au ${formatFR(prev.end)}`;
+    document.getElementById("curDates").textContent  = `Du ${formatFR(cur.start)} au ${formatFR(cur.end)}`;
+    document.getElementById("nextDates").textContent = `Du ${formatFR(next.start)} au ${formatFR(next.end)}`;
+
+    // Progress bar
+    const miniFill = document.getElementById("miniFill");
+    setTimeout(() => {
+      miniFill.style.width = `${pct}%`;
+    }, 100);
+
+    // Today marker position
+    let pos = 0.5;
+
+    const inPrev = today >= prev.start && today <= prev.end;
+    const inCur  = today >= cur.start  && today <= cur.end;
+    const inNext = today >= next.start && today <= next.end;
+
+    const segFrac = (d, segStart) => clamp(daysBetween(segStart, d)/(SPRINT_LENGTH_DAYS-1), 0, 1);
+
+    if (inPrev){
+      pos = (0/3) + (segFrac(today, prev.start) / 3);
+    } else if (inCur){
+      pos = (1/3) + (segFrac(today, cur.start)  / 3);
+    } else if (inNext){
+      pos = (2/3) + (segFrac(today, next.start) / 3);
+    } else if (today < prev.start){
+      pos = 0;
+    } else {
+      pos = 1;
+    }
+
+    const marker = document.getElementById("marker");
+    marker.style.left = `${pos * 100}%`;
+    document.getElementById("todayLabel").textContent = `Today • ${formatFR(today)}`;
+  }
+
+  // Initial load
+  compute();
+  
+  // Update every 10 minutes
+  setInterval(compute, 10 * 60 * 1000);
+  
+  // Update on visibility change (when user returns to Notion)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      compute();
+    }
+  });
+</script>
+</body>
+</html>
