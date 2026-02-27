@@ -382,6 +382,25 @@
   const daysBetween = (a,b) => Math.floor((b-a)/(1000*60*60*24));
   const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
 
+  // ---- NEW: ignore weekends for progress ----
+  const isWeekend = (d) => {
+    const day = d.getDay(); // 0=Sun, 6=Sat
+    return day === 0 || day === 6;
+  };
+
+  // Count working days from start to end (inclusive)
+  function workingDaysInclusive(start, end){
+    if (end < start) return 0;
+    let count = 0;
+    const cur = new Date(start);
+    while (cur <= end){
+      if (!isWeekend(cur)) count++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    return count;
+  }
+  // -----------------------------------------
+
   function sprintBounds(sprint1Start, sprintIndex){
     const start = addDays(sprint1Start, (sprintIndex-1)*SPRINT_LENGTH_DAYS);
     const end = addDays(start, SPRINT_LENGTH_DAYS-1);
@@ -400,12 +419,18 @@
     const prev = sprintBounds(sprint1, Math.max(1, sprintIndex-1));
     const next = sprintBounds(sprint1, sprintIndex+1);
 
-    const dayInSprint = clamp(daysBetween(cur.start, today)+1, 1, SPRINT_LENGTH_DAYS);
-    const progress = clamp((dayInSprint-1)/(SPRINT_LENGTH_DAYS-1), 0, 1);
-    const pct = Math.round(progress*100);
+    // ===== UPDATED: progress on working days (Mon–Fri) only =====
+    const totalWorkDays = workingDaysInclusive(cur.start, cur.end);
 
-    const isLastDay = dayInSprint === SPRINT_LENGTH_DAYS;
-    const pill = isLastDay ? "Dernier jour" : `J+${dayInSprint-1} / ${SPRINT_LENGTH_DAYS}`;
+    const effectiveEnd = today < cur.start ? addDays(cur.start, -1) : (today > cur.end ? cur.end : today);
+    const doneWorkDays = workingDaysInclusive(cur.start, effectiveEnd);
+
+    const progress = totalWorkDays === 0 ? 0 : clamp(doneWorkDays / totalWorkDays, 0, 1);
+    const pct = Math.round(progress * 100);
+
+    const isLastDay = doneWorkDays >= totalWorkDays;
+    const pill = isLastDay ? "Dernier jour" : `Jours ouvrés : ${doneWorkDays} / ${totalWorkDays}`;
+    // ===========================================================
 
     // Header
     document.getElementById("currentTitle").textContent = `Sprint ${sprintIndex}`;
@@ -433,7 +458,7 @@
       miniFill.style.width = `${pct}%`;
     }, 100);
 
-    // Today marker position
+    // Today marker position (inchangé)
     let pos = 0.5;
 
     const inPrev = today >= prev.start && today <= prev.end;
