@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sprint Timeline Widget</title>
+  <title>Timeline finale — PlayOff Amateurs</title>
   <style>
     :root{
       --bg: #ffffff;
@@ -12,15 +12,17 @@
       --muted: rgba(15, 23, 42, .65);
       --text: #0f172a;
 
-      --accent: #2563eb;   /* bleu tech */
-      --accent2:#22c55e;   /* vert progrès */
+      --accent: #2563eb;
+      --accent2:#22c55e;
+      --warning:#f59e0b;
+      --danger:#ef4444;
 
       --shadow: 0 10px 30px rgba(2, 6, 23, .08);
       --radius: 16px;
     }
 
     *{ box-sizing: border-box; margin: 0; padding: 0; }
-    
+
     body{
       margin: 0;
       padding: 12px;
@@ -33,12 +35,12 @@
       justify-content: center;
     }
 
-    .wrap{ 
-      width: 100%; 
+    .wrap{
+      width: 100%;
       max-width: 900px;
       margin: 0 auto;
     }
-    
+
     .card{
       width: 100%;
       background: var(--card);
@@ -50,7 +52,6 @@
       position: relative;
     }
 
-    /* grille tech discrète */
     .card::before{
       content:"";
       position:absolute;
@@ -110,7 +111,7 @@
 
     .right{
       text-align:right;
-      min-width: 200px;
+      min-width: 220px;
     }
 
     .big{
@@ -126,7 +127,6 @@
       color: var(--muted);
     }
 
-    /* Timeline */
     .timelineWrap{
       padding-top: 20px;
       border-top: 1px solid var(--border);
@@ -149,7 +149,7 @@
       background: rgba(2, 6, 23, .02);
       position: relative;
       overflow:hidden;
-      min-height: 90px;
+      min-height: 108px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -183,15 +183,24 @@
       line-height: 1.4;
     }
 
-    /* Current sprint highlight */
     .current{
       background: rgba(37, 99, 235, .08);
       border-color: rgba(37, 99, 235, .25);
       border-width: 2px;
     }
+
+    .done{
+      background: rgba(34, 197, 94, .08);
+      border-color: rgba(34, 197, 94, .20);
+    }
+
+    .upcoming{
+      background: rgba(245, 158, 11, .06);
+      border-color: rgba(245, 158, 11, .20);
+    }
+
     .current .segTitle{ color: var(--accent); }
 
-    /* Progress bar inside current segment */
     .miniBar{
       margin-top: auto;
       height: 12px;
@@ -199,6 +208,7 @@
       background: rgba(15, 23, 42, .10);
       overflow:hidden;
     }
+
     .miniFill{
       height:100%;
       width:0%;
@@ -207,6 +217,7 @@
       transition: width 1200ms cubic-bezier(.2,.9,.2,1);
       position:relative;
     }
+
     .miniFill::after{
       content:"";
       position:absolute;
@@ -218,13 +229,13 @@
       animation: sheen 2.8s infinite;
       opacity: .7;
     }
+
     @keyframes sheen{
       0%   { left:-45%; }
       60%  { left:110%; }
       100% { left:110%; }
     }
 
-    /* Today marker */
     .todayMarker{
       position:absolute;
       top: -12px;
@@ -239,7 +250,7 @@
     }
 
     .dot{
-      width: 12px; 
+      width: 12px;
       height: 12px;
       border-radius: 999px;
       background: var(--accent);
@@ -266,7 +277,6 @@
       border-radius: 999px;
     }
 
-    /* Footer hint */
     .hint{
       margin-top: 12px;
       font-size: 12px;
@@ -274,17 +284,16 @@
       text-align: center;
     }
 
-    /* Responsive - ajusté pour Notion */
     @media (max-width: 600px){
       body{ padding: 10px; }
       .card{ padding: 16px; }
-      .track{ 
-        grid-template-columns: 1fr; 
+      .track{
+        grid-template-columns: 1fr;
         gap: 10px;
       }
       .todayMarker{ display:none; }
-      .right{ 
-        text-align:left; 
+      .right{
+        text-align:left;
         min-width: auto;
       }
       .header{
@@ -293,7 +302,7 @@
       }
       .big{ font-size: 28px; }
       .title{ font-size: 20px; }
-      .segment{ padding: 12px; min-height: 80px; }
+      .segment{ padding: 12px; min-height: 90px; }
     }
 
     @media (max-width: 400px){
@@ -307,11 +316,11 @@
 
 <body>
   <div class="wrap">
-    <div class="card" role="group" aria-label="Sprint timeline widget">
+    <div class="card" role="group" aria-label="Timeline finale">
       <div class="header">
         <div class="left">
           <div class="title">
-            <span id="currentTitle">Sprint —</span>
+            <span id="currentTitle">Étape —</span>
             <span class="pill" id="pill">—</span>
           </div>
           <div class="meta" id="currentRange">—</div>
@@ -325,7 +334,7 @@
 
       <div class="timelineWrap">
         <div class="todayMarker" id="marker" aria-hidden="true">
-          <div class="label" id="todayLabel">Today</div>
+          <div class="label" id="todayLabel">Aujourd’hui</div>
           <div class="dot"></div>
           <div class="line"></div>
         </div>
@@ -333,16 +342,16 @@
         <div class="track" id="track">
           <div class="segment" id="prevSeg">
             <div class="segTitle">
-              <span id="prevName">Sprint —</span> 
-              <span class="tag">précédent</span>
+              <span id="prevName">—</span>
+              <span class="tag" id="prevTag">terminé</span>
             </div>
             <div class="dates" id="prevDates">—</div>
           </div>
 
           <div class="segment current" id="curSeg">
             <div class="segTitle">
-              <span id="curName">Sprint —</span> 
-              <span class="tag">actuel</span>
+              <span id="curName">—</span>
+              <span class="tag" id="curTag">en cours</span>
             </div>
             <div class="dates" id="curDates">—</div>
             <div class="miniBar">
@@ -352,149 +361,191 @@
 
           <div class="segment" id="nextSeg">
             <div class="segTitle">
-              <span id="nextName">Sprint —</span> 
-              <span class="tag">suivant</span>
+              <span id="nextName">—</span>
+              <span class="tag" id="nextTag">à venir</span>
             </div>
             <div class="dates" id="nextDates">—</div>
           </div>
         </div>
 
-        <div class="hint" id="hint">Sprint 1 démarre le 05/01/2026 • Durée : 14 jours • Mise à jour automatique</div>
+        <div class="hint" id="hint">Dernière ligne droite avant le rendu final et la soutenance.</div>
       </div>
     </div>
   </div>
 
 <script>
-  // ====== CONFIGURATION ======
-  const SPRINT1_START = "2026-01-05"; // Format: YYYY-MM-DD
-  const SPRINT_LENGTH_DAYS = 14;
+  const MILESTONES = [
+    {
+      name: "Dernier sprint",
+      start: "2026-03-14T00:00:00",
+      end:   "2026-03-27T23:59:59",
+      display: "Jusqu’au 27/03/2026",
+      short: "Sprint finalisé"
+    },
+    {
+      name: "Rendu du dossier écrit",
+      start: "2026-03-28T00:00:00",
+      end:   "2026-03-30T23:59:59",
+      display: "30/03/2026 avant minuit",
+      short: "Dossier à rendre"
+    },
+    {
+      name: "Soutenance",
+      start: "2026-03-31T00:00:00",
+      end:   "2026-04-02T16:00:00",
+      display: "02/04/2026 à 16h00",
+      short: "Présentation orale"
+    }
+  ];
 
-  // ====== Helpers ======
   const pad = (n) => String(n).padStart(2, "0");
-  const formatFR = (d) => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+  const formatFRDate = (d) => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+  const formatFRDateTime = (d) =>
+    `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} à ${pad(d.getHours())}h${pad(d.getMinutes())}`;
 
-  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const addDays = (d, days) => { 
-    const x = new Date(d); 
-    x.setDate(x.getDate()+days); 
-    return x; 
-  };
-  const daysBetween = (a,b) => Math.floor((b-a)/(1000*60*60*24));
   const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
 
-  // ---- NEW: ignore weekends for progress ----
-  const isWeekend = (d) => {
-    const day = d.getDay(); // 0=Sun, 6=Sat
-    return day === 0 || day === 6;
-  };
-
-  // Count working days from start to end (inclusive)
-  function workingDaysInclusive(start, end){
-    if (end < start) return 0;
-    let count = 0;
-    const cur = new Date(start);
-    while (cur <= end){
-      if (!isWeekend(cur)) count++;
-      cur.setDate(cur.getDate() + 1);
-    }
-    return count;
+  function diffParts(from, to){
+    const ms = to - from;
+    const totalMinutes = Math.max(0, Math.floor(ms / 60000));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+    return { days, hours, minutes };
   }
-  // -----------------------------------------
 
-  function sprintBounds(sprint1Start, sprintIndex){
-    const start = addDays(sprint1Start, (sprintIndex-1)*SPRINT_LENGTH_DAYS);
-    const end = addDays(start, SPRINT_LENGTH_DAYS-1);
-    return { start, end };
+  function formatCountdown(from, to){
+    const { days, hours, minutes } = diffParts(from, to);
+    if (days > 0) return `${days}j ${hours}h restantes`;
+    if (hours > 0) return `${hours}h ${minutes}min restantes`;
+    return `${minutes} min restantes`;
+  }
+
+  function getPhase(now){
+    const dates = MILESTONES.map(m => ({
+      ...m,
+      startDate: new Date(m.start),
+      endDate: new Date(m.end)
+    }));
+
+    if (now <= dates[0].endDate){
+      return {
+        prev: dates[0],
+        cur: dates[1],
+        next: dates[2],
+        currentStep: dates[1],
+        progressStart: dates[0].endDate,
+        progressEnd: dates[1].endDate
+      };
+    }
+
+    if (now <= dates[1].endDate){
+      return {
+        prev: dates[0],
+        cur: dates[1],
+        next: dates[2],
+        currentStep: dates[1],
+        progressStart: dates[1].startDate,
+        progressEnd: dates[1].endDate
+      };
+    }
+
+    if (now <= dates[2].endDate){
+      return {
+        prev: dates[1],
+        cur: dates[2],
+        next: dates[2],
+        currentStep: dates[2],
+        progressStart: dates[2].startDate,
+        progressEnd: dates[2].endDate
+      };
+    }
+
+    return {
+      prev: dates[1],
+      cur: dates[2],
+      next: dates[2],
+      currentStep: null,
+      progressStart: dates[2].startDate,
+      progressEnd: dates[2].endDate,
+      finished: true
+    };
   }
 
   function compute(){
-    const today = startOfDay(new Date());
-    const sprint1 = startOfDay(new Date(SPRINT1_START + "T00:00:00"));
+    const now = new Date();
+    const phase = getPhase(now);
 
-    const deltaDays = daysBetween(sprint1, today);
-    let sprintIndex = Math.floor(deltaDays / SPRINT_LENGTH_DAYS) + 1;
-    if (deltaDays < 0) sprintIndex = 1;
+    const prevSeg = document.getElementById("prevSeg");
+    const curSeg = document.getElementById("curSeg");
+    const nextSeg = document.getElementById("nextSeg");
 
-    const cur = sprintBounds(sprint1, sprintIndex);
-    const prev = sprintBounds(sprint1, Math.max(1, sprintIndex-1));
-    const next = sprintBounds(sprint1, sprintIndex+1);
+    prevSeg.className = "segment done";
+    curSeg.className = "segment current";
+    nextSeg.className = "segment upcoming";
 
-    // ===== UPDATED: progress on working days (Mon–Fri) only =====
-    const totalWorkDays = workingDaysInclusive(cur.start, cur.end);
+    document.getElementById("prevName").textContent = phase.prev.name;
+    document.getElementById("prevDates").textContent = phase.prev.display;
 
-    const effectiveEnd = today < cur.start ? addDays(cur.start, -1) : (today > cur.end ? cur.end : today);
-    const doneWorkDays = workingDaysInclusive(cur.start, effectiveEnd);
+    document.getElementById("curName").textContent = phase.cur.name;
+    document.getElementById("curDates").textContent = phase.cur.display;
 
-    const progress = totalWorkDays === 0 ? 0 : clamp(doneWorkDays / totalWorkDays, 0, 1);
-    const pct = Math.round(progress * 100);
+    document.getElementById("nextName").textContent = phase.next.name;
+    document.getElementById("nextDates").textContent = phase.next.display;
 
-    const isLastDay = doneWorkDays >= totalWorkDays;
-    const pill = isLastDay ? "Dernier jour" : `Jours ouvrés : ${doneWorkDays} / ${totalWorkDays}`;
-    // ===========================================================
+    let pct = 100;
+    let title = "Projet finalisé";
+    let pill = "Terminé";
+    let meta = "Toutes les échéances sont passées.";
+    let kpi = "Bravo, dernière étape franchie.";
 
-    // Header
-    document.getElementById("currentTitle").textContent = `Sprint ${sprintIndex}`;
+    if (!phase.finished){
+      const total = phase.progressEnd - phase.progressStart;
+      const elapsed = clamp(now - phase.progressStart, 0, total);
+      pct = total <= 0 ? 100 : Math.round((elapsed / total) * 100);
+
+      title = phase.currentStep.name;
+      pill = formatCountdown(now, phase.currentStep.endDate || phase.progressEnd);
+      meta = `Prochaine échéance : ${phase.currentStep.display}`;
+
+      if (phase.currentStep.name === "Rendu du dossier écrit"){
+        kpi = `Cap sur le dossier • ${formatCountdown(now, new Date(MILESTONES[1].end))}`;
+      } else {
+        kpi = `Cap sur la soutenance • ${formatCountdown(now, new Date(MILESTONES[2].end))}`;
+      }
+    }
+
+    document.getElementById("currentTitle").textContent = title;
     document.getElementById("pill").textContent = pill;
-    document.getElementById("currentRange").textContent =
-      `Du ${formatFR(cur.start)} au ${formatFR(cur.end)} (14 jours)`;
-
+    document.getElementById("currentRange").textContent = meta;
     document.getElementById("pct").textContent = `${pct}%`;
-    document.getElementById("kpi").textContent = isLastDay
-      ? "Fin de sprint aujourd'hui"
-      : `Aujourd'hui : ${formatFR(today)}`;
+    document.getElementById("kpi").textContent = kpi;
 
-    // Segments labels
-    document.getElementById("prevName").textContent = `Sprint ${Math.max(1, sprintIndex-1)}`;
-    document.getElementById("curName").textContent = `Sprint ${sprintIndex}`;
-    document.getElementById("nextName").textContent = `Sprint ${sprintIndex+1}`;
-
-    document.getElementById("prevDates").textContent = `Du ${formatFR(prev.start)} au ${formatFR(prev.end)}`;
-    document.getElementById("curDates").textContent  = `Du ${formatFR(cur.start)} au ${formatFR(cur.end)}`;
-    document.getElementById("nextDates").textContent = `Du ${formatFR(next.start)} au ${formatFR(next.end)}`;
-
-    // Progress bar
     const miniFill = document.getElementById("miniFill");
     setTimeout(() => {
       miniFill.style.width = `${pct}%`;
     }, 100);
 
-    // Today marker position (inchangé)
     let pos = 0.5;
-
-    const inPrev = today >= prev.start && today <= prev.end;
-    const inCur  = today >= cur.start  && today <= cur.end;
-    const inNext = today >= next.start && today <= next.end;
-
-    const segFrac = (d, segStart) => clamp(daysBetween(segStart, d)/(SPRINT_LENGTH_DAYS-1), 0, 1);
-
-    if (inPrev){
-      pos = (0/3) + (segFrac(today, prev.start) / 3);
-    } else if (inCur){
-      pos = (1/3) + (segFrac(today, cur.start)  / 3);
-    } else if (inNext){
-      pos = (2/3) + (segFrac(today, next.start) / 3);
-    } else if (today < prev.start){
-      pos = 0;
-    } else {
-      pos = 1;
-    }
+    const timelineStart = new Date(MILESTONES[0].start);
+    const timelineEnd = new Date(MILESTONES[2].end);
+    const totalTimeline = timelineEnd - timelineStart;
+    const elapsedTimeline = clamp(now - timelineStart, 0, totalTimeline);
+    pos = totalTimeline <= 0 ? 1 : elapsedTimeline / totalTimeline;
 
     const marker = document.getElementById("marker");
     marker.style.left = `${pos * 100}%`;
-    document.getElementById("todayLabel").textContent = `Today • ${formatFR(today)}`;
+    document.getElementById("todayLabel").textContent = `Aujourd’hui • ${formatFRDateTime(now)}`;
+
+    document.getElementById("hint").textContent =
+      "Dernière ligne droite : rendu du dossier écrit le 30/03 avant minuit, puis soutenance le 02/04 à 16h.";
   }
 
-  // Initial load
   compute();
-  
-  // Update every 10 minutes
-  setInterval(compute, 10 * 60 * 1000);
-  
-  // Update on visibility change (when user returns to Notion)
+  setInterval(compute, 60 * 1000);
+
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      compute();
-    }
+    if (!document.hidden) compute();
   });
 </script>
 </body>
